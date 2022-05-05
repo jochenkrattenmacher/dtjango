@@ -8,6 +8,10 @@ class Agent(models.Model):
         unique=True,
         max_length=255,
     )
+    preferences = models.CharField(
+        default="",
+        max_length=511,
+    )
 
     def __str__(self):
         return (

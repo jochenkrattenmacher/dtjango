@@ -1,5 +1,6 @@
 from django.views.generic import CreateView, DetailView
 
+from .forms import AgentCreateForm
 from .models import Agent
 
 
@@ -14,9 +15,8 @@ agent_detail_view = AgentDetailView.as_view()
 
 
 class AgentCreateView(CreateView):
-
+    form_class = AgentCreateForm
     model = Agent
-    fields = ["name"]
     slug_field = "id"
     slug_url_kwarg = "id"
 
