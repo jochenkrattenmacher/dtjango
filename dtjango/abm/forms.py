@@ -1,7 +1,7 @@
 from django import forms
 
 from . import models
-
+import networkx as nx
 # from django.core.exceptions import ValidationError
 
 
@@ -17,10 +17,24 @@ class AgentCreateForm(forms.ModelForm):
     def clean_preferences(self):
         cleaned_data = self.cleaned_data
         preferences = cleaned_data["preferences"]
-        print(preferences)
-        if not {">", "<", "~"} & set(preferences):
-            raise forms.ValidationError("Must have ~,>, or <")
+        preferences = preferences.replace(" ", "")
         formulas = preferences.split(",")
-        for formula in formulas:
-            print(formula)
-        return preferences.replace(" ", "")
+        G = nx.DiGraph()
+        for f in formulas:
+            terms = f.split('<')
+            if len(terms) == 2:
+                G.add_edge(*terms)
+            else:
+                terms = f.split('>')
+                terms.reverse()
+                G.add_edge(*terms)
+            if len(terms) != 2:
+                terms = f.split('~')
+                G.add_edge(*terms)
+                terms.reverse()
+                G.add_edge(*terms)
+            if len(terms) != 2:
+                raise forms.ValidationError("Each formula must have ~,>, or <, and two expressions")
+            if len([x for x in nx.simple_cycles(G)]) > 0:
+                raise forms.ValidationError("Cyclic preferences!")
+        return preferences
