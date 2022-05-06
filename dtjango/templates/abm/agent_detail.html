@@ -10,7 +10,11 @@
     <div class="col-sm-12">
 
       <h2>{{ object.name }}</h2>
-      <span>{{ object.preferences }}</span>
+      <ul>
+        {% for preference in preferences_list %}
+            <li>{{ preference }}</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 

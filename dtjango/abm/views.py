@@ -10,6 +10,14 @@ class AgentDetailView(DetailView):
     slug_field = "id"
     slug_url_kwarg = "id"
 
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        obj = super().get_object()
+        # Add in a QuerySet of all the books
+        context['preferences_list'] = obj.preferences.split(',')
+        return context
+
 
 agent_detail_view = AgentDetailView.as_view()
 
