@@ -13,6 +13,15 @@ class AgentCreateForm(forms.ModelForm):
             "name": "Name",
             "preferences": "Preferences (~,>, or <. delimit with comma!)",
         }
+    force = forms.BooleanField(required=False, initial=0, widget = forms.HiddenInput())
+
+    # def clean_force(self):
+    #     data = self.cleaned_data['force']
+    #     if data:
+    #         return data
+    #     else:
+    #         raise forms.ValidationError('Please confi')
+
 
     def clean_preferences(self):
         cleaned_data = self.cleaned_data
@@ -21,20 +30,24 @@ class AgentCreateForm(forms.ModelForm):
         formulas = preferences.split(",")
         G = nx.DiGraph()
         for f in formulas:
-            terms = f.split('<')
-            if len(terms) == 2:
+            matches = [x for x in ['<', '>', '~'] if x in f]
+            if len(matches) != 1:
+                raise forms.ValidationError("Each formula must have exactly one ~,>, or < sign")
+            sign = matches[0]
+            terms = f.split(sign)
+            if len(terms) != 2:
+                raise forms.ValidationError("Each formula must exactly two expressions")
+            if sign == '<':
+                G.add_edge(*terms)
+            elif sign == '>':
+                terms.reverse()
                 G.add_edge(*terms)
             else:
-                terms = f.split('>')
-                terms.reverse()
-                G.add_edge(*terms)
-            if len(terms) != 2:
-                terms = f.split('~')
                 G.add_edge(*terms)
                 terms.reverse()
                 G.add_edge(*terms)
-            if len(terms) != 2:
-                raise forms.ValidationError("Each formula must have ~,>, or <, and two expressions")
-            if len([x for x in nx.simple_cycles(G)]) > 0:
-                raise forms.ValidationError("Cyclic preferences!")
+            if len([x for x in nx.simple_cycles(G)]) > 0 and not int(self.data["force"]):
+                self.data = {**self.data.dict(), 'force': 1}
+                raise forms.ValidationError("Cyclic preferences! Submit again to confirm.")
+                #if needed: https://stackoverflow.com/questions/11728227/django-form-ask-for-confirmation-before-committing-to-db
         return preferences

@@ -7,7 +7,6 @@
   <form class="form-horizontal" method="post" action="{% url 'abm:new' %}">
     {% csrf_token %}
     {{ form|crispy }}
-    {{ form.errors }}
     <div class="control-group">
       <div class="controls">
         <button type="submit" class="btn btn-primary">Create</button>
